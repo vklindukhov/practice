@@ -2,7 +2,7 @@ package samples;
 
 public class Runner {
     public static void main(String[] args) {
-        System.out.println("Test commit");
+        System.out.println("Test commit2");
     }
 }
 
