@@ -5,7 +5,7 @@
     <artifactId>OCJP</artifactId>
     <version>1</version>
     <packaging>jar</packaging>
-    <name>OCJP</name>
+    <name>Practice</name>
 
     <url>http://maven.apache.org</url>
 
