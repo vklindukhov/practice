@@ -6,10 +6,9 @@ package samples.practice;
 //4
 //5
 
-import java.io.*;
-
 public class _9_NIO2 {
     public static void main(String[] args) {
+        System.out.println("Hello World");
     }
 }
 
