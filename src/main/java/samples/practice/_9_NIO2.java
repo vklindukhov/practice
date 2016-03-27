@@ -6,7 +6,6 @@ package samples.practice;
 //4
 //5
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,12 +22,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.list;
+import static java.util.stream.Collectors.toList;
 
 
 //        System.out.println("GAMES COUNT: " + gamesPaths.size() + "\n");
@@ -59,10 +61,13 @@ public class _9_NIO2 {
 //                .limit(10)
                 .forEach(e -> {
                     Path p = e.getValue().iterator().next();
-                    try (BufferedReader reader = Files.newBufferedReader(p)) {
+                    try (/*BufferedReader reader = Files.newBufferedReader(p)) {
                         List<String> lines = new ArrayList<>();
                         String line = null;
-                        while ((line = reader.readLine()) != null) lines.add(line);
+                        while ((line = reader.readLine()) != null) lines.add(line);*/
+                         Stream<String> linesStream = Files.lines(p)
+                    ) {
+                        List<String> lines = linesStream.collect(toList());
                         if (!LAST_LINE_IN_SEARCH_FILE.equals(lines.get(lines.size() - 1).trim())) {
                             throw new IOException("WRONG FILE MARKING: LAST LINE IS NOT '" + LAST_LINE_IN_SEARCH_FILE + "'");
                         }
