@@ -1,10 +1,10 @@
 package samples.practice;
 
-//1
-//2
-//3
-//4
-//5
+//1 D - C
+//2 D - B
+//3 B +
+//4 A +
+//5 D - A
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -246,6 +246,7 @@ public class _9_NIO2 {
 //NIO.2 and legacy File: 1) can be used to list all the files within a single directory; 2) can be used to delete files and non-empty directories; 3) can be used to read the last-modified time
 //Path::normalize does not covert a relative path into an absolute path
 //Path::getNameCount return 1 for current directory ("" or ".".normalize())
+//Path has iterator. The first element returned by the iterator represents the name element that is closest to the root in the directory hierarchy, the second element is the next closest, and so on. The last element returned is the name of the file or directory denoted by this path
 
 
 //    Predicate<Path> isHiddenCheck1 = p -> {
