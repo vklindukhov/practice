@@ -50,6 +50,10 @@ public class _9_NIO2 {
     public static final String LAST_LINE_IN_SEARCH_FILE = "}";
 
     public static void main(String[] args) throws IOException {
+        System.out.println("Hello World!!!");
+    }
+
+    private static void processGames() throws IOException {
         Path pathToGames = Paths.get(ABSOLUTE_PATH_TO_GAMES);
         System.out.println("Processing ...");
         Map<String, List<Path>> filesPaths = findFilesPaths(pathToGames, FILE_TO_SEARCH);
@@ -81,7 +85,6 @@ public class _9_NIO2 {
                     }
                 });
         System.out.println("\nUPDATED " + updated + " " + FILE_TO_SEARCH + " FILES");
-
     }
 
     private static Map<String, List<Path>> findFilesPaths(Path pathToGames, String searchFileName) throws IOException {
