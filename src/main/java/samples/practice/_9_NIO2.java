@@ -50,7 +50,26 @@ public class _9_NIO2 {
     public static final String LAST_LINE_IN_SEARCH_FILE = "}";
 
     public static void main(String[] args) throws IOException {
-        System.out.println("Hello World!!!");
+        Path path = Paths.get(".");
+        Path normalized = path.normalize();
+        int nameCount = normalized.getNameCount();
+        System.out.println(nameCount);
+    }
+
+    private static void symbolicLinks() throws IOException {
+        Path path = Paths.get("../");
+        Files.find(path, 0, (p, a) -> a.isSymbolicLink())
+                .map(p -> p.toString())
+                .collect(Collectors.toList())
+                .stream()
+                .filter(x -> x.endsWith(".txt"))
+                .forEach(System.out::println);
+    }
+
+    private static void relativize() {
+        Path path = Paths.get("/user/.././root", "../kodiacbear.txt");
+        path = path.normalize().relativize(Paths.get("/lion"));
+        System.out.println(path);
     }
 
     private static void processGames() throws IOException {
@@ -174,30 +193,59 @@ public class _9_NIO2 {
 
 
 //Chapter 9 Test
-//1 -
-//2 -
-//3 -
-//4 -
-//5 -
-//6 -
-//7 -
-//8 -
-//9 -
-//10 -
-//11 -
-//12 -
-//13 -
-//14 -
-//15 -
-//16 -
-//17 -
-//18 -
-//19 -
-//20 -
-//21 -
-//22 -
-//23 -
-//-(%)
+//1 - D - F не знал, завтык,
+//2 - B,C,D - B,C не знал
+//3 - A - D не знал
+//4 - C +
+//5 - B,D - B,C,D не знал
+//6 - C +
+//7 - F +
+//8 - E - A не знал
+//9 - A,C - B,C не знал
+//10 - A,B,E - C,E не знал
+//11 - B - A не знал
+//12 - A,F,!?G?! - A,F не знал
+//13 - A - B не знал
+//14 - A - E не знал
+//15 - A,B,C,D,E,F - D,E,F не знал
+//16 - F +
+//17 - A,?E,F?,G - A,G не знал
+//18 - D +
+//19 - A,B,C,D,E,F - A,C,E не знал
+//20 - D - B не знал
+//-16(80%)
+//Path.relativize(Path path) constructs a relative path between this path and a given path.
+//Path::normalize does not change the current Path object, but instead it returns a new Path object
+//Files.isDirectory(Path path) returns false if directory does not exist
+//symbolic link can point to a real directory
+//Files::deleteIfExists throws DirectoryNotEmptyException if directory has content
+//BasicFileAttributes does not have the method setTimes()
+//Path::subpath is applied to the absolute path, Path.getName() is applied to the relative path
+//symbolic link can be replaced to path of referenced directory
+//Files.find(Path,int,BiPredicate<Path,BasicFilesAttributes>,FileVisitOption...)
+//Files.isSameFile(Path,Path) checks are they same in term of equals() if false, then checks existence of both path in the file system, relative and absolute to the same file is not equal
+//Path::resolve does not normalize any path symbols, returns an absolute path if an argument is an absolute path
+//path name can be with dot
+//advantage of using Files.lines(): can be run on large files with very little memory available;
+//if REPLACE_EXISTING flag is not provided then Files.move() throws an Exception if the target exists
+//NOFOLLOW_LINKS flag means that if the source is a symbolic link, the link itself and not the target will be copied at runtime
+//ATOMIC_MODE flag means that any process monitoring the file system will not see an incomplete file during the move
+//possible to rename file from/to without extension
+//Files.move(Path src, Path dst) if src is file/directory then dst will be file/directory as well
+//Files.copy(Path src, Path dst, CopyOption...) src will not equal to dst, hence equals() return false
+//FileSystems.getDefault().getPath(String path) exists
+//Paths.getPath(String path) DOES not exist
+//directory is regular and NOT a symbolic link
+//Files.find(... int depth ...) if depth is 0 then search will be in top-level directory
+//Files::list is most similar to File::listFiles and retrieves the members of the current directory without traversing any subdirectories
+//Path::listFiles and Files::files DO NOT exist
+//Files::walk and Files::find find recursively traverse a directory tree rather than list contents of the current directory
+//Files.(...int depth...) can be similar to File::listFiles if depth is 1
+//NIO.2 views advantages to read metadata rather than individually from Files methods: 1) makes fewer round-trip to the file system, 2) can be used to access file system-dependent attributes, 3) often more performant to read multiple attributes
+//NIO.2 advantages over legacy File: 1) supports file system-dependent attributes; 2) supports symbolic links; 3) allows to traverse a directory tree directly
+//NIO.2 and legacy File: 1) can be used to list all the files within a single directory; 2) can be used to delete files and non-empty directories; 3) can be used to read the last-modified time
+//Path::normalize does not covert a relative path into an absolute path
+//Path::getNameCount return 1 for current directory ("" or ".".normalize())
 
 
 //    Predicate<Path> isHiddenCheck1 = p -> {
