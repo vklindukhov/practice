@@ -35,11 +35,17 @@ import static java.util.stream.Collectors.toList;
 public class _9_NIO2 {
 
     public static final String ABSOLUTE_PATH_TO_GAMES = "C:\\Users\\vasylk\\Projects\\trunk\\ngm\\client\\games";
-    public static final String FILE_TO_SEARCH = "config.json";
+    public static final String ABSOLUTE_PATH_TO_BRANDS = "C:\\Users\\vasylk\\Projects\\ngm_brands";
+    public static final String PLATFORM_CONFIG_FILE_NAME = "config.json";
+    public static final String BRAND_CONFIG_FILE_NAME = "brand.json";
     public static final String CONTENT_TO_INSERT = "  \"someNewParameterName\": \"someNewParameterValue\"";
     public static final String LAST_LINE_IN_SEARCH_FILE = "}";
 
     public static void main(String[] args) throws IOException {
+        processBrands();
+    }
+
+    private static void normalized() {
         Path path = Paths.get(".");
         Path normalized = path.normalize();
         int nameCount = normalized.getNameCount();
@@ -62,10 +68,24 @@ public class _9_NIO2 {
         System.out.println(path);
     }
 
+    private static void processBrands() throws IOException {
+        Path pathToBrands = Paths.get(ABSOLUTE_PATH_TO_BRANDS);
+        System.out.println("Processing ...");
+        Predicate<Path> isNotHiddenDirectory = p -> !p.getFileName().toString().startsWith(".") && Files.isDirectory(p);
+        Map<String, List<Path>> filesPaths = findFilesPaths(pathToBrands, isNotHiddenDirectory, BRAND_CONFIG_FILE_NAME);
+        showProcessedInfo(BRAND_CONFIG_FILE_NAME, filesPaths);
+        List<String> processedRootsNames = filesPaths.keySet().stream().sorted().collect(Collectors.toList());
+        System.out.println("\nPROCESSED BRANDS (" + processedRootsNames.size() + "):");
+        processedRootsNames.forEach(System.out::println);
+
+    }
+
     private static void processGames() throws IOException {
         Path pathToGames = Paths.get(ABSOLUTE_PATH_TO_GAMES);
         System.out.println("Processing ...");
-        Map<String, List<Path>> filesPaths = findFilesPaths(pathToGames, FILE_TO_SEARCH);
+        Predicate<Path> isNotHiddenDirectory = p -> !p.getFileName().toString().startsWith(".") && Files.isDirectory(p);
+        Map<String, List<Path>> filesPaths = findFilesPaths(pathToGames, isNotHiddenDirectory, PLATFORM_CONFIG_FILE_NAME);
+        showProcessedInfo(PLATFORM_CONFIG_FILE_NAME, filesPaths);
 
         System.out.println();
         AtomicInteger updated = new AtomicInteger(0);
@@ -93,25 +113,21 @@ public class _9_NIO2 {
                         System.err.println("!!!!!!!!!ERRORR!!!!!!!!! - IO_EXCEPTION FOR: " + p.getFileName() + ". " + cause.getMessage());
                     }
                 });
-        System.out.println("\nUPDATED " + updated + " " + FILE_TO_SEARCH + " FILES");
+        System.out.println("\nUPDATED " + updated + " " + PLATFORM_CONFIG_FILE_NAME + " FILES");
     }
 
-    private static Map<String, List<Path>> findFilesPaths(Path pathToGames, String searchFileName) throws IOException {
-        Predicate<Path> isFileHidden = p -> p.getFileName().toString().startsWith(".");
-
-        int indexOfGameName = 7;
+    private static Map<String, List<Path>> findFilesPaths(Path pathToWorkDirectory, Predicate<Path> filterPredicate, String searchFileName) throws IOException {
         Map<String, List<Path>> searchFilePaths = new ConcurrentHashMap<>();
-
-        Consumer<Path> processGame = p -> {
-            String gameName = p.getName(indexOfGameName).toString();
-            searchFilePaths.put(gameName, new ArrayList<>());
+        Consumer<Path> processRootPath = p -> {
+            String rootPathName = p.getFileName().toString();
+            searchFilePaths.put(rootPathName, new ArrayList<>());
             try {
                 Files.walk(p)
                         .parallel()
                         .filter(f -> !isDirectory(f) && searchFileName.equals(f.getFileName().toString()))
                         .forEach(f -> {
 //                            System.out.println(f.getFileName() + " - " + f.toAbsolutePath());
-                            searchFilePaths.get(gameName).add(f);
+                            searchFilePaths.get(rootPathName).add(f);
                         });
             } catch (IOException e) {
                 System.err.println("IO_EXCEPTION FOR: " + p.getFileName());
@@ -119,22 +135,31 @@ public class _9_NIO2 {
         };
 
 
-        list(pathToGames).parallel().filter(isFileHidden.negate()).forEach(processGame);
-
-        long foundFilesCount = searchFilePaths.values().stream().map(List::size).reduce(0, (a, b) -> a + b);
-        System.out.println("\nFOUND " + foundFilesCount + " " + searchFileName + " FILES IN " + searchFilePaths.entrySet().size() + " GAMES");
-
-        System.out.println("\nGAMES WITHOUT " + searchFileName + " FILE:");
-        searchFilePaths.entrySet().stream().filter(e -> e.getValue().isEmpty()).forEach(e -> System.out.println(e.getKey()));
-
-        System.out.println("\nGAMES WITH MULTIPLE " + searchFileName + " FILES:");
-        searchFilePaths.entrySet().stream().filter(e -> e.getValue().size() > 1).forEach(e -> {
-            System.out.print("\n" + e.getKey() + " - ");
-            e.getValue().stream().forEach(p -> System.out.print(p.toString().split(e.getKey())[1] + "   "));
-        });
-        System.out.println();
-
+        list(pathToWorkDirectory).parallel().filter(filterPredicate).forEach(processRootPath);
         return searchFilePaths;
+    }
+
+    private static void showProcessedInfo(String searchFileName, Map<String, List<Path>> searchFilePaths) {
+        if(!searchFilePaths.entrySet().isEmpty()) {
+            long foundFilesCount = searchFilePaths.values().stream().map(List::size).reduce(0, (a, b) -> a + b);
+            System.out.println("\nFOUND " + foundFilesCount + " " + searchFileName + " FILES IN " + searchFilePaths.entrySet().size() + " ROOT DIRECTORIES");
+        }
+
+        List<String> emptyValues = searchFilePaths.entrySet().stream().filter(e -> e.getValue().isEmpty()).map(Map.Entry::getKey).collect(Collectors.toList());
+        if(!emptyValues.isEmpty()) {
+            System.out.println("\nROOT DIRECTORIES WITHOUT " + searchFileName + " FILE (" + emptyValues.size() + "):");
+            emptyValues.stream().sorted().forEach(System.out::println);
+        }
+
+        List<String> multipleValues = searchFilePaths.entrySet().stream().filter(e -> e.getValue().size() > 1).map(e -> e.getKey()).collect(Collectors.toList());
+        if(!multipleValues.isEmpty()) {
+            System.out.println("\nROOT DIRECTORIES WITH MULTIPLE " + searchFileName + " FILES (" + multipleValues.size() + "):");
+            searchFilePaths.entrySet().stream().filter(e -> e.getValue().size() > 1).sorted((p1, po2) -> p1.getKey().compareTo(po2.getKey())).forEach(e -> {
+                System.out.print("\n" + e.getKey() + " - ");
+                e.getValue().stream().forEach(p -> System.out.print(p.toString().split(e.getKey())[1] + "   "));
+            });
+            System.out.println();
+        }
     }
 
     private static void filesAttributes() throws IOException {
