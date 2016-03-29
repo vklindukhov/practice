@@ -1,11 +1,5 @@
 package samples.practice;
 
-//1 D - C
-//2 D - B
-//3 B +
-//4 A +
-//5 D - A
-
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,15 +26,11 @@ import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.list;
 import static java.util.stream.Collectors.toList;
 
-
-//        System.out.println("GAMES COUNT: " + gamesPaths.size() + "\n");
-//todo: create Consumer to do something, in current case it:
-//todo: 1. find config.json (implement Visitor pattern)
-//todo: 2. parse and add new attributes
-//todo: 3. save changes
-//        gamesPaths.stream().forEach(gameDir -> System.out.println(gameDir.getFileName()));
-//        System.out.println("\nGAMES COUNT: " + gamesPaths.size());
-
+//1 D - C
+//2 D - B
+//3 B +
+//4 A +
+//5 D - A
 
 public class _9_NIO2 {
 
