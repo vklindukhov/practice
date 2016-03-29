@@ -41,6 +41,7 @@ public class _9_NIO2 {
     public static final String CONTENT_TO_INSERT = "  \"someNewParameterName\": \"someNewParameterValue\"";
     public static final String LAST_LINE_IN_SEARCH_FILE = "}";
 
+
     public static void main(String[] args) throws IOException {
         processBrands();
     }
