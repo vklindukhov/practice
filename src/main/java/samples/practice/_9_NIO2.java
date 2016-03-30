@@ -1,5 +1,10 @@
 package samples.practice;
 
+import javafx.util.Pair;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -8,16 +13,14 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
@@ -42,7 +45,56 @@ public class _9_NIO2 {
     public static final String LAST_LINE_IN_SEARCH_FILE = "}";
 
     public static void main(String[] args) throws IOException {
-        processBrands();
+        MainMenuItems buttons = readPlatformConfigMainMenuItems();
+        System.out.println("PLATFORM config.json FILE DEFAULT mainMenuItems VALUES:");
+        buttons.forEach(System.out::println);
+        processBrands(buttons);
+    }
+
+    private static MainMenuItems readPlatformConfigMainMenuItems() throws IOException {
+        Path path = Paths.get("C:\\Users\\vasylk\\Projects\\platform\\platform-html\\src\\main\\webapp\\json\\config.json");
+        String fileContent = Files.lines(path).reduce("", (a, b) -> a + b);
+        JSONObject jsonObject = new JSONObject(fileContent);
+        return getMainMenuItems(path, jsonObject);
+    }
+
+    private static MainMenuItems getMainMenuItems(Path path, JSONObject jsonObject) {
+
+        try {
+            JSONArray mainMenuItems = jsonObject.getJSONArray("mainMenuItems");
+            MainMenuItems menuItems = new MainMenuItems();
+            StreamSupport.stream(mainMenuItems.spliterator(), false)
+                    .sorted(getJsonObjectComparator())
+                    .forEach(getJsonObjectConsumer(menuItems));
+            return menuItems;
+        } catch (JSONException ex) {
+//            System.err.println("!!!!!!!!!ERRORR!!!!!!!!! - JSON_EXCEPTION FOR: " + path);
+            return null;
+        }
+    }
+
+    private static Consumer<Object> getJsonObjectConsumer(MainMenuItems menuItems) {
+        return item -> {
+            JSONObject button = (JSONObject) item;
+            String buttonId = button.getString("id");
+            JSONObject enabledInMode = new JSONObject("{}");
+            try {
+                enabledInMode = button.getJSONObject("enabledInMode");
+                menuItems.add(new Pair<>(buttonId, enabledInMode));
+            } catch (JSONException ex) {
+//                    System.err.println("!!!!!!!!!ERRORR!!!!!!!!! - JSON_EXCEPTION FOR: " + path + " - " + buttonId);
+            }
+        };
+    }
+
+    private static Comparator<Object> getJsonObjectComparator() {
+        return (o1, o2) -> {
+            JSONObject button1 = (JSONObject) o1;
+            JSONObject button2 = (JSONObject) o2;
+            String buttonId1 = button1.getString("id");
+            String buttonId2 = button2.getString("id");
+            return buttonId1.compareTo(buttonId2);
+        };
     }
 
     private static void normalized() {
@@ -68,16 +120,63 @@ public class _9_NIO2 {
         System.out.println(path);
     }
 
-    private static void processBrands() throws IOException {
+    private static void processBrands(MainMenuItems buttons) throws IOException {
         Path pathToBrands = Paths.get(ABSOLUTE_PATH_TO_BRANDS);
-        System.out.println("Processing ...");
+        System.out.println("\nPROCESSING OF BRANDS ...");
         Predicate<Path> isNotHiddenDirectory = p -> !p.getFileName().toString().startsWith(".") && Files.isDirectory(p);
         Map<String, List<Path>> filesPaths = findFilesPaths(pathToBrands, isNotHiddenDirectory, BRAND_CONFIG_FILE_NAME);
         showProcessedInfo(BRAND_CONFIG_FILE_NAME, filesPaths);
         List<String> processedRootsNames = filesPaths.keySet().stream().sorted().collect(Collectors.toList());
-        System.out.println("\nPROCESSED BRANDS (" + processedRootsNames.size() + "):");
-        processedRootsNames.forEach(System.out::println);
+        if (!processedRootsNames.isEmpty()) {
+//            System.out.println("\nPROCESSED BRANDS (" + processedRootsNames.size() + "):");
+//            processedRootsNames.forEach(System.out::println);
+        }
 
+        Map<String, List<Pair<Path, JSONObject>>> jsonsMap = new HashMap<>();
+
+        filesPaths.entrySet().forEach(entry -> {
+            jsonsMap.put(entry.getKey(), new ArrayList<>());
+            entry.getValue().forEach(path -> {
+                String fileContent = null;
+                try {
+                    fileContent = Files.lines(path).reduce("", (a, b) -> a + b);
+                    JSONObject jsonObject = new JSONObject(fileContent);
+                    jsonsMap.get(entry.getKey()).add(new Pair(path, jsonObject));
+                } catch (IOException cause) {
+                    System.err.println("!!!!!!!!!ERRORR!!!!!!!!! - IO_EXCEPTION FOR: " + path.getFileName() + ". " + cause.getMessage());
+                }
+            });
+        });
+
+//        jsonsMap.entrySet()
+//                .stream()
+//                .filter(e -> !e.getValue().isEmpty())
+//                .sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
+//                .forEach(e -> {
+//                    System.out.println("\nBRAND: " + e.getKey());
+//                    e.getValue().forEach(pair -> System.out.println(pair.getKey() + ":\n" + pair.getValue()));
+//                });
+
+        System.out.print("\n\nBRANDS mainMenuItems OVERRIDDEN VALUES:");
+        jsonsMap.entrySet().stream()
+                .map(e -> createBrandInfo(e))
+                .filter(b -> !b.brandJsons.isEmpty())
+                .sorted((b1, b2) -> b1.brandName.compareTo(b2.brandName))
+                .forEach(System.out::println);
+    }
+
+    private static BrandInfo createBrandInfo(Map.Entry<String, List<Pair<Path, JSONObject>>> e) {
+        return new BrandInfo(e.getKey(), collectBrandJsonFilesForBrand(e));
+    }
+
+    private static List<BrandJson> collectBrandJsonFilesForBrand(Map.Entry<String, List<Pair<Path, JSONObject>>> e) {
+        return e.getValue()
+                .stream()
+                .map(entry -> {
+                    Path pathToFile = entry.getKey();
+                    MainMenuItems mainMenuItems = getMainMenuItems(entry.getKey(), entry.getValue());
+                    return new BrandJson(pathToFile, mainMenuItems);
+                }).collect(Collectors.toList());
     }
 
     private static void processGames() throws IOException {
@@ -140,19 +239,19 @@ public class _9_NIO2 {
     }
 
     private static void showProcessedInfo(String searchFileName, Map<String, List<Path>> searchFilePaths) {
-        if(!searchFilePaths.entrySet().isEmpty()) {
+        if (!searchFilePaths.entrySet().isEmpty()) {
             long foundFilesCount = searchFilePaths.values().stream().map(List::size).reduce(0, (a, b) -> a + b);
             System.out.println("\nFOUND " + foundFilesCount + " " + searchFileName + " FILES IN " + searchFilePaths.entrySet().size() + " ROOT DIRECTORIES");
         }
 
         List<String> emptyValues = searchFilePaths.entrySet().stream().filter(e -> e.getValue().isEmpty()).map(Map.Entry::getKey).collect(Collectors.toList());
-        if(!emptyValues.isEmpty()) {
+        if (!emptyValues.isEmpty()) {
             System.out.println("\nROOT DIRECTORIES WITHOUT " + searchFileName + " FILE (" + emptyValues.size() + "):");
             emptyValues.stream().sorted().forEach(System.out::println);
         }
 
         List<String> multipleValues = searchFilePaths.entrySet().stream().filter(e -> e.getValue().size() > 1).map(e -> e.getKey()).collect(Collectors.toList());
-        if(!multipleValues.isEmpty()) {
+        if (!multipleValues.isEmpty()) {
             System.out.println("\nROOT DIRECTORIES WITH MULTIPLE " + searchFileName + " FILES (" + multipleValues.size() + "):");
             searchFilePaths.entrySet().stream().filter(e -> e.getValue().size() > 1).sorted((p1, po2) -> p1.getKey().compareTo(po2.getKey())).forEach(e -> {
                 System.out.print("\n" + e.getKey() + " - ");
@@ -203,6 +302,66 @@ public class _9_NIO2 {
         System.out.println(path1.toAbsolutePath().equals(path2));
         System.out.println(path1.compareTo(path2));
         System.out.println(path1.toAbsolutePath().compareTo(path2));
+    }
+}
+
+
+class BrandInfo {
+    String brandName;
+    List<BrandJson> brandJsons;
+
+    public BrandInfo(String brandName, List<BrandJson> brandJsons) {
+        this.brandName = brandName;
+        this.brandJsons = brandJsons;
+    }
+
+    @Override
+    public String toString() {
+        return "\n\n\n" + brandName + ":\n" + brandJsons;
+    }
+}
+
+class MainMenuItems implements Iterable {
+    List<Pair<String, JSONObject>> items = new ArrayList<>();
+
+    public void add(Pair<String, JSONObject> stringJSONObjectPair) {
+        items.add(stringJSONObjectPair);
+    }
+
+    @Override
+    public Iterator iterator() {
+        return items.iterator();
+    }
+
+    @Override
+    public void forEach(Consumer action) {
+        items.forEach(action);
+    }
+
+    @Override
+    public Spliterator spliterator() {
+        return items.spliterator();
+    }
+
+    @Override
+    public String toString() {
+        return items.stream()
+                .sorted((i1, i2) -> i1.getKey().compareTo(i2.getKey()))
+                .map(p -> "\n" + p.getKey() + ": " + p.getValue())
+                .reduce("", (a, b) -> a + b);
+    }
+}
+
+class BrandJson {
+    Pair<Path, MainMenuItems> elements;
+
+    public BrandJson(Path pathFile, MainMenuItems buttons) {
+        elements = new Pair<>(pathFile, buttons);
+    }
+
+    @Override
+    public String toString() {
+        return "\n" + elements.getKey() + ":" + elements.getValue();
     }
 }
 
