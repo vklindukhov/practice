@@ -18,7 +18,7 @@ public class _7_Concurrency {
     private static final int THREADS_AMOUNT = Runtime.getRuntime().availableProcessors();
     private static final long N = 1_000_000_000L;
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main(String[] args) {
     }
 
     private static void reduceSyntax() {
