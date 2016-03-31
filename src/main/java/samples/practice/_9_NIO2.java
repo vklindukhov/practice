@@ -2,7 +2,6 @@ package samples.practice;
 
 import javafx.util.Pair;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -17,10 +16,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
@@ -28,6 +27,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.list;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 
 //1 D - C
 //2 D - B
@@ -37,57 +37,77 @@ import static java.util.stream.Collectors.toList;
 
 public class _9_NIO2 {
 
-    public static final String ABSOLUTE_PATH_TO_GAMES = "C:\\Users\\vasylk\\Projects\\trunk\\ngm\\client\\games";
-    public static final String ABSOLUTE_PATH_TO_BRANDS = "C:\\Users\\vasylk\\Projects\\ngm_brands";
-    public static final String PLATFORM_CONFIG_FILE_NAME = "config.json";
-    public static final String BRAND_CONFIG_FILE_NAME = "brand.json";
-    public static final String CONTENT_TO_INSERT = "  \"someNewParameterName\": \"someNewParameterValue\"";
-    public static final String LAST_LINE_IN_SEARCH_FILE = "}";
+    private static final String ABSOLUTE_PATH_TO_GAMES = "C:\\Users\\vasylk\\Projects\\trunk\\ngm\\client\\games";
+    private static final String ABSOLUTE_PATH_TO_BRANDS = "C:\\Users\\vasylk\\Projects\\ngm_brands";
+    private static final String PLATFORM_CONFIG_FILE_NAME = "config.json";
+    private static final String BRAND_CONFIG_FILE_NAME = "brand.json";
+    private static final String CONTENT_TO_INSERT = "  \"someNewParameterName\": \"someNewParameterValue\"";
+    private static final String LAST_LINE_IN_SEARCH_FILE = "}";
+    private static final String ADD_MENU_BUTTONS_PARAM_NAME = "addMenuButtons";
+    private static final String MAIN_MENU_ITEMS_PARAM_NAME = "mainMenuItems";
+    private static final String TABLE_GAME_PARAM_NAME = "tableGame";
+    private static final String VISIBLE_IN_MODE_PARAM_NAME = "visibleInMode";
+    public static final String ENABLED_IN_MODE_PARAM_NAME = "enabledInMode";
+    public static final String PLATFORM_CONFIG_JSON_FILE_PATH = "C:\\Users\\vasylk\\Projects\\platform\\platform-html\\src\\main\\webapp\\json\\config.json";
+    public static final String GAME_CONFIG_PARAM_NAME = "gameConfig";
 
     public static void main(String[] args) throws IOException {
-        MainMenuItems buttons = readPlatformConfigMainMenuItems();
-        System.out.println("PLATFORM config.json FILE DEFAULT mainMenuItems VALUES:");
-        buttons.forEach(System.out::println);
-        processBrands(buttons);
+//        Path path = Paths.get("C:\\Users\\vasylk\\Projects\\platform\\platform-html\\src\\main\\webapp\\json\\config.json");
+//        JsonParameters jsonParameters = readMainMenuItems(path, getToVisibleInModeMapper());
+        processGames(false);
     }
 
-    private static MainMenuItems readPlatformConfigMainMenuItems() throws IOException {
-        Path path = Paths.get("C:\\Users\\vasylk\\Projects\\platform\\platform-html\\src\\main\\webapp\\json\\config.json");
-        String fileContent = Files.lines(path).reduce("", (a, b) -> a + b);
-        JSONObject jsonObject = new JSONObject(fileContent);
-        return getMainMenuItems(path, jsonObject);
-    }
-
-    private static MainMenuItems getMainMenuItems(Path path, JSONObject jsonObject) {
-
-        try {
-            JSONArray mainMenuItems = jsonObject.getJSONArray("mainMenuItems");
-            MainMenuItems menuItems = new MainMenuItems();
-            StreamSupport.stream(mainMenuItems.spliterator(), false)
-                    .sorted(getJsonObjectComparator())
-                    .forEach(getJsonObjectConsumer(menuItems));
-            return menuItems;
-        } catch (JSONException ex) {
-//            System.err.println("!!!!!!!!!ERRORR!!!!!!!!! - JSON_EXCEPTION FOR: " + path);
-            return null;
+    private static JsonParameters readMainMenuItems(Path path, Function<Object, Pair<String, JSONObject>> mapper) throws IOException {
+        Object parameter = getParameter(path, MAIN_MENU_ITEMS_PARAM_NAME);
+        if (parameter != null && JSONArray.class.getName().equals(parameter.getClass().getName())) {
+            return getParametersList((JSONArray) parameter, mapper, getMainMenuItemComparator());
         }
+        return new JsonParameters(new ArrayList<>());
     }
 
-    private static Consumer<Object> getJsonObjectConsumer(MainMenuItems menuItems) {
+    private static Object getParameter(Path pathToFile, String paramName) throws IOException {
+        JSONObject jsonObject = createJsonObjectFromFile(pathToFile);
+        if (jsonObject.has(paramName)) return jsonObject.get(paramName);
+        else return null;
+    }
+
+    private static JSONObject createJsonObjectFromFile(Path pathToFile) throws IOException {
+        String fileContent = Files.lines(pathToFile).reduce("", (a, b) -> a + b);
+        return new JSONObject(fileContent);
+    }
+
+    private static JsonParameters getParametersList(JSONArray array, Function<Object, Pair<String, JSONObject>> paramMapper, Comparator<Object> paramComparator) {
+        Stream<Object> stream = stream(array.spliterator(), false);
+        List<Pair<String, JSONObject>> list;
+        if (paramComparator != null)
+            list = stream.sorted(paramComparator).map(paramMapper).collect(Collectors.toList());
+        else list = stream.map(paramMapper).collect(Collectors.toList());
+        return new JsonParameters(list);
+    }
+
+    private static Function<Object, Pair<String, JSONObject>> getToEnabledInModeMapper() {
         return item -> {
             JSONObject button = (JSONObject) item;
             String buttonId = button.getString("id");
             JSONObject enabledInMode = new JSONObject("{}");
-            try {
-                enabledInMode = button.getJSONObject("enabledInMode");
-                menuItems.add(new Pair<>(buttonId, enabledInMode));
-            } catch (JSONException ex) {
-//                    System.err.println("!!!!!!!!!ERRORR!!!!!!!!! - JSON_EXCEPTION FOR: " + path + " - " + buttonId);
-            }
+            if (button.has(ENABLED_IN_MODE_PARAM_NAME)) {
+                return new Pair<>(buttonId, button.getJSONObject(ENABLED_IN_MODE_PARAM_NAME));
+            } else return new Pair<>(buttonId, enabledInMode);
         };
     }
 
-    private static Comparator<Object> getJsonObjectComparator() {
+    private static Function<Object, Pair<String, JSONObject>> getToVisibleInModeMapper() {
+        return item -> {
+            JSONObject button = (JSONObject) item;
+            String buttonId = button.getString("id");
+            JSONObject enabledInMode = new JSONObject("{}");
+            if (button.has(VISIBLE_IN_MODE_PARAM_NAME)) {
+                return new Pair<>(buttonId, button.getJSONObject(VISIBLE_IN_MODE_PARAM_NAME));
+            } else return new Pair<>(buttonId, enabledInMode);
+        };
+    }
+
+    private static Comparator<Object> getMainMenuItemComparator() {
         return (o1, o2) -> {
             JSONObject button1 = (JSONObject) o1;
             JSONObject button2 = (JSONObject) o2;
@@ -120,12 +140,17 @@ public class _9_NIO2 {
         System.out.println(path);
     }
 
-    private static void processBrands(MainMenuItems buttons) throws IOException {
+    private static void processBrands() throws IOException {
+        Path pathToPlatformsConfigFile = Paths.get(PLATFORM_CONFIG_JSON_FILE_PATH);
+        JsonParameters defaultItems = readMainMenuItems(pathToPlatformsConfigFile, getToVisibleInModeMapper());
+        System.out.println("PLATFORM config.json FILE DEFAULT mainMenuItems VALUES:");
+        defaultItems.forEach(System.out::println);
+
         Path pathToBrands = Paths.get(ABSOLUTE_PATH_TO_BRANDS);
         System.out.println("\nPROCESSING OF BRANDS ...");
         Predicate<Path> isNotHiddenDirectory = p -> !p.getFileName().toString().startsWith(".") && Files.isDirectory(p);
         Map<String, List<Path>> filesPaths = findFilesPaths(pathToBrands, isNotHiddenDirectory, BRAND_CONFIG_FILE_NAME);
-        showProcessedInfo(BRAND_CONFIG_FILE_NAME, filesPaths);
+        printProcessedInfo(BRAND_CONFIG_FILE_NAME, filesPaths);
         List<String> processedRootsNames = filesPaths.keySet().stream().sorted().collect(Collectors.toList());
         if (!processedRootsNames.isEmpty()) {
 //            System.out.println("\nPROCESSED BRANDS (" + processedRootsNames.size() + "):");
@@ -174,31 +199,87 @@ public class _9_NIO2 {
                 .stream()
                 .map(entry -> {
                     Path pathToFile = entry.getKey();
-                    MainMenuItems mainMenuItems = getMainMenuItems(entry.getKey(), entry.getValue());
-                    return new BrandJson(pathToFile, mainMenuItems);
+                    try {
+                        return new BrandJson(pathToFile, readMainMenuItems(pathToFile, getToEnabledInModeMapper()));
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                        return null;
+                    }
                 }).collect(Collectors.toList());
     }
 
-    private static void processGames() throws IOException {
+    private static void processGames(boolean isNeedToUpdate) throws IOException {
         Path pathToGames = Paths.get(ABSOLUTE_PATH_TO_GAMES);
-        System.out.println("Processing ...");
+        System.out.println("PROCESSING OF GAMES...");
         Predicate<Path> isNotHiddenDirectory = p -> !p.getFileName().toString().startsWith(".") && Files.isDirectory(p);
-        Map<String, List<Path>> filesPaths = findFilesPaths(pathToGames, isNotHiddenDirectory, PLATFORM_CONFIG_FILE_NAME);
-        showProcessedInfo(PLATFORM_CONFIG_FILE_NAME, filesPaths);
+        String fileToSearch = PLATFORM_CONFIG_FILE_NAME;
+        Map<String, List<Path>> filesPaths = findFilesPaths(pathToGames, isNotHiddenDirectory, fileToSearch);
+        printProcessedInfo(fileToSearch, filesPaths);
 
+        JSONObject platformConfig = createJsonObjectFromFile(Paths.get(PLATFORM_CONFIG_JSON_FILE_PATH));
+        if (platformConfig.has(GAME_CONFIG_PARAM_NAME)) {
+            platformConfig.getJSONObject(GAME_CONFIG_PARAM_NAME).keySet().stream()
+                    .map(getParamToPairMapper(filesPaths))
+                    .sorted((p1, p2) -> new Integer(p2.getValue().size()).compareTo(p1.getValue().size()))
+                    .forEach(getParamsInfoPrinter(fileToSearch));
+        }
+
+        if (isNeedToUpdate) {
+            updateGamesConfigs(filesPaths);
+        }
+    }
+
+    private static Consumer<Pair<String, List<Map.Entry<String, List<Path>>>>> getParamsInfoPrinter(String fileToSearch) {
+        return pair -> {
+            List<Map.Entry<String, List<Path>>> haveParam = pair.getValue();
+            System.out.println("\nGAMES THAT HAVE " + pair.getKey() + " PARAMETER IN ITS " + fileToSearch + " FILES (" + haveParam.size() + ") :");
+            pair.getValue().forEach(printInfo());
+        };
+    }
+
+    private static Function<String, Pair<String, List<Map.Entry<String, List<Path>>>>> getParamToPairMapper(Map<String, List<Path>> filesPaths) {
+        return paramName -> {
+            List<Map.Entry<String, List<Path>>> haveParam = filesPaths.entrySet().stream()
+                    .filter(e -> gameConfigsHasParameter(e, paramName))
+                    .collect(Collectors.toList());
+            return new Pair<>(paramName, haveParam);
+        };
+    }
+
+    private static Consumer<Map.Entry<String, List<Path>>> printInfo() {
+        return e -> System.out.println(e.getKey() + ": " +
+                e.getValue().stream()
+                        .map(p -> p.toString().split(e.getKey())[1] + "   ")
+                        .reduce("", (a, b) -> a + b));
+    }
+
+    private static boolean gameConfigsHasParameter(Map.Entry<String, List<Path>> e, String paramName) {
+        Stream<Path> stream = e.getValue().stream();
+        List<Path> configsThatHasParam = stream.filter(gameConfigsHasParameter(paramName)).collect(Collectors.toList());
+        return !configsThatHasParam.isEmpty();
+    }
+
+    private static Predicate<Path> gameConfigsHasParameter(String paramName) {
+        return path -> {
+            try {
+                JSONObject jsonObject = createJsonObjectFromFile(path);
+                return jsonObject.has(paramName);
+            } catch (IOException cause) {
+                System.err.println("!!!!!!!!!ERRORR!!!!!!!!! - (processGames) IO_EXCEPTION FOR: " + path.getFileName() + ". " + cause.getMessage());
+                return false;
+            }
+        };
+    }
+
+    private static void updateGamesConfigs(Map<String, List<Path>> filesPaths) {
         System.out.println();
         AtomicInteger updated = new AtomicInteger(0);
-        filesPaths.entrySet().stream().parallel()
+        filesPaths.entrySet().stream()
                 .filter(e -> e.getValue().size() == 1)
 //                .limit(10)
                 .forEach(e -> {
                     Path p = e.getValue().iterator().next();
-                    try (/*BufferedReader reader = Files.newBufferedReader(p)) {
-                        List<String> lines = new ArrayList<>();
-                        String line = null;
-                        while ((line = reader.readLine()) != null) lines.add(line);*/
-                         Stream<String> linesStream = Files.lines(p)
-                    ) {
+                    try (Stream<String> linesStream = Files.lines(p)) {
                         List<String> lines = linesStream.collect(toList());
                         if (!LAST_LINE_IN_SEARCH_FILE.equals(lines.get(lines.size() - 1).trim())) {
                             throw new IOException("WRONG FILE MARKING: LAST LINE IS NOT '" + LAST_LINE_IN_SEARCH_FILE + "'");
@@ -222,7 +303,6 @@ public class _9_NIO2 {
             searchFilePaths.put(rootPathName, new ArrayList<>());
             try {
                 Files.walk(p)
-                        .parallel()
                         .filter(f -> !isDirectory(f) && searchFileName.equals(f.getFileName().toString()))
                         .forEach(f -> {
 //                            System.out.println(f.getFileName() + " - " + f.toAbsolutePath());
@@ -234,11 +314,11 @@ public class _9_NIO2 {
         };
 
 
-        list(pathToWorkDirectory).parallel().filter(filterPredicate).forEach(processRootPath);
+        list(pathToWorkDirectory).filter(filterPredicate).forEach(processRootPath);
         return searchFilePaths;
     }
 
-    private static void showProcessedInfo(String searchFileName, Map<String, List<Path>> searchFilePaths) {
+    private static void printProcessedInfo(String searchFileName, Map<String, List<Path>> searchFilePaths) {
         if (!searchFilePaths.entrySet().isEmpty()) {
             long foundFilesCount = searchFilePaths.values().stream().map(List::size).reduce(0, (a, b) -> a + b);
             System.out.println("\nFOUND " + foundFilesCount + " " + searchFileName + " FILES IN " + searchFilePaths.entrySet().size() + " ROOT DIRECTORIES");
@@ -252,7 +332,7 @@ public class _9_NIO2 {
 
         List<String> multipleValues = searchFilePaths.entrySet().stream().filter(e -> e.getValue().size() > 1).map(e -> e.getKey()).collect(Collectors.toList());
         if (!multipleValues.isEmpty()) {
-            System.out.println("\nROOT DIRECTORIES WITH MULTIPLE " + searchFileName + " FILES (" + multipleValues.size() + "):");
+            System.out.print("\nROOT DIRECTORIES WITH MULTIPLE " + searchFileName + " FILES (" + multipleValues.size() + "):");
             searchFilePaths.entrySet().stream().filter(e -> e.getValue().size() > 1).sorted((p1, po2) -> p1.getKey().compareTo(po2.getKey())).forEach(e -> {
                 System.out.print("\n" + e.getKey() + " - ");
                 e.getValue().stream().forEach(p -> System.out.print(p.toString().split(e.getKey())[1] + "   "));
@@ -321,31 +401,35 @@ class BrandInfo {
     }
 }
 
-class MainMenuItems implements Iterable {
-    List<Pair<String, JSONObject>> items = new ArrayList<>();
+class JsonParameters implements Iterable {
+    List<Pair<String, JSONObject>> list;
+
+    public JsonParameters(List<Pair<String, JSONObject>> list) {
+        this.list = list;
+    }
 
     public void add(Pair<String, JSONObject> stringJSONObjectPair) {
-        items.add(stringJSONObjectPair);
+        list.add(stringJSONObjectPair);
     }
 
     @Override
     public Iterator iterator() {
-        return items.iterator();
+        return list.iterator();
     }
 
     @Override
     public void forEach(Consumer action) {
-        items.forEach(action);
+        list.forEach(action);
     }
 
     @Override
     public Spliterator spliterator() {
-        return items.spliterator();
+        return list.spliterator();
     }
 
     @Override
     public String toString() {
-        return items.stream()
+        return list.stream()
                 .sorted((i1, i2) -> i1.getKey().compareTo(i2.getKey()))
                 .map(p -> "\n" + p.getKey() + ": " + p.getValue())
                 .reduce("", (a, b) -> a + b);
@@ -353,9 +437,9 @@ class MainMenuItems implements Iterable {
 }
 
 class BrandJson {
-    Pair<Path, MainMenuItems> elements;
+    Pair<Path, JsonParameters> elements;
 
-    public BrandJson(Path pathFile, MainMenuItems buttons) {
+    public BrandJson(Path pathFile, JsonParameters buttons) {
         elements = new Pair<>(pathFile, buttons);
     }
 
