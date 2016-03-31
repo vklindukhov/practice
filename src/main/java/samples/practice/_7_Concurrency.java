@@ -1,12 +1,12 @@
 package samples.practice;
 
-//1
-//2
-//3
-//4
-//5
-//6
-//7
+//1 D
+//2 B
+//3 A,B
+//4 D
+//5 C
+//6 C
+//7 C
 
 import java.util.ArrayList;
 import java.util.Iterator;
