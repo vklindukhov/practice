@@ -21,13 +21,19 @@ public class _7_Concurrency {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
     }
 
+    private static void reduceSyntax() {
+//        BiFunction<Integer, String, Integer> integerStringIntegerBiFunction = (c1, c2) -> c1.length() + c2.length();
+//        BinaryOperator<Integer> integerBinaryOperator = (s1, s2) -> s1 + s2;
+//        System.out.println(Arrays.asList("duck", "chicken", "flamingo", "pelican").parallelStream().parallel().reduce(0, integerStringIntegerBiFunction, integerBinaryOperator));
+    }
+
     private static void isPrimeInParallelStream() {
         System.out.println(IntStream.rangeClosed(2, 200_000).parallel().filter(_7_Concurrency::isPrime).count());
     }
 
 
     public static boolean isPrime(int number) {
-        for (int i = 2; i <= number/2; i++) {
+        for (int i = 2; i <= number / 2; i++) {
             if (number % i == 0) return false;
         }
         return true;
@@ -100,24 +106,41 @@ public class _7_Concurrency {
 }
 
 //Chapter 7 Test
-//1 -
-//2 -
-//3 -
-//4 -
-//5 -
-//6 -
-//7 -
-//8 -
-//9 -
-//10 -
-//11 -
-//12 -
-//13 -
-//14 -
-//15 -
-//16 -
-//17 -
-//18 -
-//19 -
-//20 -
-//-(0%)
+//1 - D,F +
+//2 - A,D,F - A,C,D,F не знал
+//3 - A - B,?!C!? не знал
+//4 - C +
+//5 - D +
+//6 - B +
+//7 - A +
+//8 - G +
+//9 - A,C,D - A,C,E не знал
+//10 - D - C не знал
+//11 - A,F +
+//12 - C,D - E не знал, завтык !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//13 - C,E - A,G не знал
+//14 - F - D не знал !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//15 - C,E,G +
+//16 - F - F,H не знал
+//17 - B +
+//18 - F +
+//19 - F - A,F завтык
+//20 - A,D + !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//21 - A - A,C,D,E не знал, завтык
+//22 - F +
+//-10(45%)
+//V Callable::call throws Exception
+//ExecutorService does NOT have the scheduleWithFixedDelay() method
+//parallel stream does not guarantee that after sorted() findAny() returns a first element in a sorted list
+//public abstract class ForkJoinTask<V> implements Future<V>, Serializable
+//using ForkJoinTask.fork().join() produces single-threaded performance at runtime
+//<U> U Stream<U>.reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner);
+//protected abstract void RecursiveAction.compute()
+//Stream.flatMap() creates a new sequential stream
+//public static <T, K> Collector<T, ?, Map<K, List<T>>> Collectors.groupingBy(Function<? super T, ? extends K> classifier)
+//overloaded methods with long timeout, TimeUnit unit from BlockingDeque throws InterruptedException
+//If ExecutorService is not shutdowned by calling ExecutorService::shutdown, the code will run but it will never terminate
+//If used Thread.sleep(timeout) and assuming this is enough to finnish a task, nevertheless the output cannot be determined ahead of time
+//JVM might not allocate NUMBER threads to the parallel stream
+//Applications with many resource-heavy tasks tend to benefit more from concurrency than ones with CPU-intensive tasks
+//Future<V> ExecutorService.submit(Callable<V>), void Executor.execute(Runnable)
