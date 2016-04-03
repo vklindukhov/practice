@@ -8,9 +8,13 @@ package samples.practice;
 //6 A,C - B,C
 
 import java.io.*;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.stream.DoubleStream;
 
 public class _8_IO {
     public static void main(String[] args) throws IOException {
+
     }
 
     private static void inConsoleOutFileViaConsole() throws FileNotFoundException {

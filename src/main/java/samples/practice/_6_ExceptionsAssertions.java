@@ -22,7 +22,6 @@ import java.sql.SQLException;
 
 public class _6_ExceptionsAssertions {
     public static void main(String[] args) {
-
     }
 
     private static void read() throws SQLException {

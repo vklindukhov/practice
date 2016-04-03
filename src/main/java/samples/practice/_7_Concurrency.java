@@ -9,16 +9,19 @@ package samples.practice;
 //7 C
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class _7_Concurrency {
     private static final int THREADS_AMOUNT = Runtime.getRuntime().availableProcessors();
     private static final long N = 1_000_000_000L;
 
     public static void main(String[] args) {
+
     }
 
     private static void reduceSyntax() {

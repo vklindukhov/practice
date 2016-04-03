@@ -16,6 +16,10 @@ public class _3_GenericsCollectionsStreams {
     public static void main(String[] args) {
     }
 
+    public static void m(List<? super Number> list){
+        list.add(123);
+    }
+
     private static void lambda() {
         Set<String> s = new HashSet<>();
         s.add("lion");

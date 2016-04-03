@@ -1,10 +1,9 @@
 package samples.practice;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.*;
+import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 
@@ -27,12 +26,25 @@ import java.util.stream.Stream;
 
 public class _4_Lambdas_StreamApi {
     public static void main(String[] args) {
+        Stream<String> generate = Stream.generate(() -> "");
+        boolean b = generate.noneMatch(String::isEmpty);
+        System.out.println(b);
+        ForkJoinPool forkJoinPool = new ForkJoinPool();
+    }
+
+    private static void manyCollectionsToStream() {
         List<Integer> l1 = Arrays.asList(1, 2, 3);
         List<Integer> l2 = Arrays.asList(4, 5, 6);
         List<Integer> l3 = Collections.emptyList();
         Stream.of(l1, l2, l3)
                 .map(Collection::stream)
                 .forEach(System.out::println);
+    }
+
+    private static void primitiveStream() {
+        DoubleStream doubleStream = DoubleStream.empty();
+        OptionalDouble any = doubleStream.findAny();
+        System.out.println(any.getAsDouble());
     }
 
     private static void basics() {
