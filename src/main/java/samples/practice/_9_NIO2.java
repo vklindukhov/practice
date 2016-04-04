@@ -236,6 +236,7 @@ public class _9_NIO2 {
     private static void printMainMenuItemsEnabledInModeDefaultValuesAnalysis(Map<String, List<Path>> filesPaths, JsonParameters defaultItems, List<BrandInfo> brandsInfo) {
         System.out.println();
         System.out.println();
+        System.out.println();
         stream(defaultItems.spliterator(), false)
                 .map(pairToItemPairInfoMapper(brandsInfo))
                 .sorted((p1, p2) -> p2.getValue() - p1.getValue())
