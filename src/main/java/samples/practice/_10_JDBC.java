@@ -13,7 +13,7 @@ import java.sql.*;
 
 public class _10_JDBC {
     public static void main(String[] args) throws SQLException {
-        try(Connection connection = DriverManager.getConnection("jdbc:mysql:test")) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql:test")) {
             Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
             ResultSet resultSet = statement.executeQuery("select * from table");
             while (resultSet.next()) {
