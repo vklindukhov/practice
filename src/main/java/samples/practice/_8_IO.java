@@ -8,13 +8,31 @@ package samples.practice;
 //6 A,C - B,C
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 public class _8_IO {
+    enum E{
+        A,B,C
+    }
     public static void main(String[] args) throws IOException {
+        IntStream.of();
+    }
 
+    private static void fileTimes() throws IOException {
+        Path path = Paths.get("");
+        BasicFileAttributeView view = Files.getFileAttributeView(path, BasicFileAttributeView.class);
+        BasicFileAttributes attributes = view.readAttributes();
+        view.setTimes(null,null,null);
     }
 
     private static void inConsoleOutFileViaConsole() throws FileNotFoundException {

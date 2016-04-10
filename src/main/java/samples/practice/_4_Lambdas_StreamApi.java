@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.*;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 
@@ -26,6 +27,16 @@ import java.util.stream.Stream;
 
 public class _4_Lambdas_StreamApi {
     public static void main(String[] args) {
+    }
+
+    private static void streamsOptionals() {
+        Stream<Integer> stream = null;
+        Optional<Integer> optional = null;
+        IntStream intStream = null;
+        OptionalInt optionalInt = null;
+    }
+
+    private static void generateExample() {
         Stream<String> generate = Stream.generate(() -> "");
         boolean b = generate.noneMatch(String::isEmpty);
         System.out.println(b);

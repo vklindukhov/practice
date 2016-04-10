@@ -12,10 +12,74 @@ package samples.practice;
 //10 - D
 
 
+import java.io.Console;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.lang.reflect.Method;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+
+//class Clazz1<Type> {
+//    void m(Type type) {
+//        System.out.println("Type");
+//    }
+//
+//    void m(Object obj) {
+//        System.out.println("obj");
+//    }
+//}
+abstract interface I{
+    default void m(){}
+}
+class Cl implements I{
+    public void m(){}
+}
+
 public class _1_2_InnerClasses_FunctionalInterfaces_Lambdas {
-    public static void main(String[] args) {
-        Lambda lambda = () -> System.out.println("Hello world from lambda");
-        lambda.m();
+    public static void main(String[] args)  {
+        Console console = System.console();
+        console.readPassword();
+        PrintWriter writer = console.writer();
+        writer.write(new char[1]);
+    }
+
+
+
+    private static void example2() {
+        Clazz instance = new Clazz();
+        int var = 0;
+        if(instance instanceof Interface) var+=1;
+        if(instance instanceof Clazz) var+=2;
+        if(null instanceof ClazzImplementsInterface) var+=3;
+        System.out.println(var);
+    }
+
+    static interface Interfaze {}
+    static class Clazz{}
+    static class ClazzImplementsInterface implements Interface{}
+
+    private static void example() {
+        _1_2_InnerClasses_FunctionalInterfaces_Lambdas a = new B();
+        B b = new B();
+        Method[] methods = b.getClass().getMethods();
+        System.out.println(methods);
+    }
+
+
+    String field = "A";
+    public void m(){
+        System.out.println(field);
+    }
+    static class B extends _1_2_InnerClasses_FunctionalInterfaces_Lambdas{
+        String field = "B";
     }
 
 
@@ -81,7 +145,7 @@ public class _1_2_InnerClasses_FunctionalInterfaces_Lambdas {
 
     interface I {
         default void m() {
-            System.out.println("Interface");
+            System.out.println("Interfaze");
         }
     }
 

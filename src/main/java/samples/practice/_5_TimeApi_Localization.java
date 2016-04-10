@@ -2,8 +2,10 @@ package samples.practice;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.ResourceBundle;
 
 import static java.time.Month.MARCH;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -27,6 +29,18 @@ import static java.util.Locale.*;
 
 public class _5_TimeApi_Localization {
     public static void main(String[] args) {
+
+    }
+
+    private static void formatter() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
+//        System.out.println(formatter.format(LocalDate.now()));
+//        System.out.println(formatter.format(LocalTime.now()));
+        System.out.println(formatter.format(LocalDateTime.now()));
+        System.out.println(formatter.format(ZonedDateTime.now()));
+    }
+
+    private static void locales() {
         Locale.setDefault(ENGLISH);
         Locale[] availableLocales = Locale.getAvailableLocales();
         System.out.println("Available Locales: " + availableLocales.length);

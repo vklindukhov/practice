@@ -8,10 +8,8 @@ package samples.practice;
 //6 C
 //7 C
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -21,7 +19,21 @@ public class _7_Concurrency {
     private static final long N = 1_000_000_000L;
 
     public static void main(String[] args) {
+    }
 
+    private static void runnableSubmit() {
+        ExecutorService service = Executors.newSingleThreadExecutor();
+        ArrayList<Future<?>> objects = new ArrayList<>();
+        IntStream.range(10,15).forEach(i -> {objects.add(service.submit(() -> calcF(i)));});
+    }
+
+    public static void calcF(int seed) {
+
+    }
+
+    private static void magic(Stream<Integer> s) {
+        Optional<Integer> o = s.filter(x -> x < 5).max((x1, x2) -> x1 - x2);
+        System.out.println(o.get());
     }
 
     private static void reduceSyntax() {
