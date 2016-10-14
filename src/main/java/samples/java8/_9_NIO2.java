@@ -1,4 +1,4 @@
-package samples.practice;
+package samples.java8;
 
 import javafx.util.Pair;
 import org.json.JSONArray;
