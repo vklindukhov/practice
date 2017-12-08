@@ -1,22 +1,49 @@
 package samples.cuncurrency;
 
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
-import static java.lang.Math.random;
+import static java.util.stream.Collectors.toList;
 
-public class _21_CreateStream {
+public class _22_ParallelStream {
     public static void main(String[] args) {
-        Stream<Double> stream1 = Arrays.asList(random(), random(), random()).stream();
-        Stream<Double> stream2 = Stream.generate(Math::random).limit(10);
-        Stream<Double> stream3 = Stream.iterate(new double[]{.0, 1.}, e -> new double[]{e[1], e[0] + e[1]}).limit(10).map(e -> e[0]);
-        Stream<Double> stream4 = Stream.empty();
-        Stream<Double> stream5 = Stream.concat(stream1, stream2);
-        Stream.Builder<Double> builder = Stream.builder();
-        builder.add(random()).accept(random());
-        Stream<Double> stream6 = builder.build();
-        Stream<Double> stream7 = Stream.of(random(), random(), random());
+        long t1 = System.nanoTime();
+        Integer res = sequential();
+//        Integer res = parallel();
+        long t2 = System.nanoTime();
+        System.out.println("Time:" + (t2 - t1) / 1_000_000);
 
+        System.out.println("Result: " + res);
+    }
+
+    private static Integer sequential() {
+        return Stream
+                .iterate(0, e -> e + 1)
+                .limit(1_000_000)
+                .mapToInt(e -> e)
+                .sum();
+    }
+
+
+    private static List<Integer> badParallel() {
+        return Stream
+                .iterate(0, e -> e + 1)
+                .skip(5)
+                .parallel()
+                .filter(e -> e % 3 == 0)
+                .map(e -> ~e)
+                .limit(1_000_000)
+                //                .peek(System.out::println)
+                .collect(toList());
+    }
+
+    private static Integer parallel() {
+        return Stream
+                .iterate(0, e -> e + 1)
+                .parallel()
+                .limit(1_000_000)
+                .mapToInt(e -> e)
+                .sum();
     }
 }

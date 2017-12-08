@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 
 import static java.lang.Math.random;
 
-public class _21_Streams {
+public class _21_CreateStream {
     public static void main(String[] args) {
         Stream<Double> stream1 = Arrays.asList(random(), random(), random()).stream();
         Stream<Double> stream2 = Stream.generate(Math::random).limit(10);

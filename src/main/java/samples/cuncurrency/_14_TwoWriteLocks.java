@@ -5,7 +5,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class _15_TwoWriteLocks {
+public class _14_TwoWriteLocks {
     private static ReadWriteLock lock = new ReentrantReadWriteLock();
     private static Lock wLock = lock.writeLock();
 
@@ -13,13 +13,13 @@ public class _15_TwoWriteLocks {
         new Thread(() -> {
             // T1
             wLock.lock();
-            System.out.printf("T1");
+            System.out.println("T1");
         }).start();
 
         new Thread(() -> {
             // T2
             wLock.lock();
-            System.out.printf("T2");
+            System.out.println("T2");
         }).start();
     }
 }

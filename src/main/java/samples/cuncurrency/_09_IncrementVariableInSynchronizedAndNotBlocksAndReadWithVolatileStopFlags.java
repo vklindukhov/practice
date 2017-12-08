@@ -1,6 +1,6 @@
 package samples.cuncurrency;
 
-public class _10_IncrementVariableInSynchronizedAndNotBlocksAndReadWithVolatileStopFlags {
+public class _09_IncrementVariableInSynchronizedAndNotBlocksAndReadWithVolatileStopFlags {
     private static int counter;
     private static volatile boolean finish1;
     private static volatile boolean finish2;

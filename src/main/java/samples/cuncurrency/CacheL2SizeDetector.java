@@ -1,9 +1,9 @@
 package samples.cuncurrency;
 
-public class CacheL1SizeDetector {
+public class CacheL2SizeDetector {
 
     public static void main(String[] args) {
-        byte[] arr = new byte[64 * 1024];
+        byte[] arr = new byte[512 * 1024];
 
         for (int i = 0; i < 10; i++) {
             test(arr);
@@ -12,9 +12,9 @@ public class CacheL1SizeDetector {
     }
 
     private static void test(byte[] arr) {
-        for (int len = 8192; len < arr.length; len += 8192) {
+        for (int len = 64 * 1024; len < arr.length; len += 64 * 1024) {
             long s = System.nanoTime();
-            for (int j = 0; j < 100; j++) {
+            for (int j = 0; j < 1000; j++) {
                 for (int k = 0; k < len; k += 64) {
                     arr[k] = 1;
                 }

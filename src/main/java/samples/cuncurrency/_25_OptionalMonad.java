@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Stream.of;
 
 
-public class _25_Monad {
+public class _25_OptionalMonad {
     private static final Function<Integer, Integer> SQR = x -> x * x;
     private static final Function<Integer, String> EXCL_MARK = e -> "" + e + "!";
 

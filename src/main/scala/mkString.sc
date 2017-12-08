@@ -6,3 +6,4 @@ println(L(L(1), L(2, 3)).map(_.mkString("#")).mkString(":"))
 println(L(L(1, 2, 3)).map(_.mkString("#")).mkString(":"))
 
 
+

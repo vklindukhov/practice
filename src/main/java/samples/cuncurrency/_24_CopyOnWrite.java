@@ -1,27 +1,18 @@
 package samples.cuncurrency;
 
 
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class _22_StreamReduce {
+public class _24_CopyOnWrite {
     public static void main(String[] args) {
-        Stream<Double> fibonacci1 = Stream.iterate(new double[]{.0, 1.}, e -> new double[]{e[1], e[0] + e[1]}).limit(10).map(e -> e[0]);
-        Stream<Double> fibonacci2 = Stream.iterate(new double[]{.0, 1.}, e -> new double[]{e[1], e[0] + e[1]}).limit(10).map(e -> e[0]);
-        Stream<Double> fibonacci3 = Stream.iterate(new double[]{.0, 1.}, e -> new double[]{e[1], e[0] + e[1]}).limit(10).map(e -> e[0]);
-        Stream<Double> fibonacci4 = Stream.iterate(new double[]{.0, 1.}, e -> new double[]{e[1], e[0] + e[1]}).limit(10).map(e -> e[0]);
-
-        BinaryOperator<Double> associativeOperator = (acc, e) -> acc + e;
-        BinaryOperator<Double> nonAssociativeOperator = (acc, e) -> acc - e;
-
-        Double res1 = fibonacci1.reduce(0., associativeOperator);
-        Double res2 = fibonacci2.parallel().reduce(0., associativeOperator);
-        Double res3 = fibonacci3.reduce(0., nonAssociativeOperator);
-        Double res4 = fibonacci4.parallel().reduce(0., nonAssociativeOperator);
-
-        System.out.println("Sequential associative res: " + res1);
-        System.out.println("Parallel associative res: " + res2);
-        System.out.println("Sequential non associative res: " + res3);
-        System.out.println("Parallel non associative res: " + res4);
+        List<Integer> cow = new CopyOnWriteArrayList<>();
+        Integer toAdd = 1;
+        boolean isOk = cow.add(toAdd);
+        Integer got = cow.get(0);
+        Integer removed = cow.remove(0);
+        System.out.println(toAdd);
+        System.out.println(got);
+        System.out.println(removed);
     }
 }

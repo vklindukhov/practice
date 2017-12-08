@@ -13,9 +13,8 @@ package samples.java8;
 //10 B
 
 
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
-
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -38,7 +37,7 @@ public class _6_ExceptionsAssertions {
     }
 
     private static void autoClosableSignature() throws IOException {
-        try (InputStream stream = new BufferedInputStream(new ByteInputStream(new byte[100], 11))) {
+        try (InputStream stream = new BufferedInputStream(new ByteArrayInputStream(new byte[100], 0, 11))) {
         }
     }
 

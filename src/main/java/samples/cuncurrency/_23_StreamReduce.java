@@ -4,7 +4,7 @@ package samples.cuncurrency;
 import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 
-public class _22_StreamReduce {
+public class _23_StreamReduce {
     public static void main(String[] args) {
         Stream<Double> fibonacci1 = Stream.iterate(new double[]{.0, 1.}, e -> new double[]{e[1], e[0] + e[1]}).limit(10).map(e -> e[0]);
         Stream<Double> fibonacci2 = Stream.iterate(new double[]{.0, 1.}, e -> new double[]{e[1], e[0] + e[1]}).limit(10).map(e -> e[0]);

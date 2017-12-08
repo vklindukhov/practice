@@ -1,22 +1,22 @@
 package samples.cuncurrency;
 
-public class SynchronizedOnObject {
-    static boolean run = true;
-    static Object lock = new Object();
+public class SynchronizedOnGetSet {
+    private static boolean run = true;
+
+    private synchronized static boolean isRun() {
+        return run;
+    }
+
+    private static synchronized void setRun(boolean run) {
+        SynchronizedOnGetSet.run = run;
+    }
 
     public static void main(String[] args) throws InterruptedException {
         // T0
         new Thread(() -> {
             // T1
-            synchronized (lock) {
-                run = false;
-            }
+            setRun(false);
         }).start();
-        while (true) {
-            synchronized (lock) {
-                System.out.println(run);
-            }
-            Thread.sleep(100);
-        }
+        while (isRun()) ;
     }
 }

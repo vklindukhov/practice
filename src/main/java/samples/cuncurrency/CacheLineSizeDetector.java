@@ -1,9 +1,10 @@
 package samples.cuncurrency;
 
-public class CacheL2SizeDetector {
+public class CacheLineSizeDetector {
+    final static int ARRAY_SIZE = 16 * 1024 * 1024;
 
     public static void main(String[] args) {
-        byte[] arr = new byte[512 * 1024];
+        byte[] arr = new byte[ARRAY_SIZE];
 
         for (int i = 0; i < 10; i++) {
             test(arr);
@@ -12,16 +13,21 @@ public class CacheL2SizeDetector {
     }
 
     private static void test(byte[] arr) {
-        for (int len = 64 * 1024; len < arr.length; len += 64 * 1024) {
+        for (int step = 4; step <= 512; step *= 2) {
             long s = System.nanoTime();
-            for (int j = 0; j < 1000; j++) {
-                for (int k = 0; k < len; k += 64) {
-                    arr[k] = 1;
+            int sum = 0;
+            for (int j = 0; j < 100; j++) {
+                for (int k = 0; k < arr.length; k += step) {
+                    sum += arr[k];
                 }
             }
+            if (sum > 0) throw new Error();
+            int stepCount = ARRAY_SIZE / step;
             long e = System.nanoTime();
+
             long t = e - s;
-            System.out.println("len:" + len + ", time:" + t + " 10time/len:" + (10 * t / len));
+
+            System.out.println("len:" + step + ", time:" + t + " time/step:" + (t / stepCount));
 
         }
     }
