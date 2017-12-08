@@ -1,0 +1,103 @@
++T - co-variant
+-T - contra-variant
+ T - non-variant, T <: -T, T <: +T
+Function[-T, +R]
+
+A2 <: A1
+B1 <: B2
+A1 => B1 <: A2=>B2
+
+(C => P) => (P => C) <: (P => C) => (C => P)
+
+
+|A => B| = |B|^|A|
+(A, B) - cartesian product, |(A, B)| = |A| * |B|
+p(A) - permutations, |p(A)| = |A|!
+s(A) - sub sets, |s(A)| = 2^|A|
+
+------------------------------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+                                                    CATEGORY THEORY
+------------------------------------------------------------------------------------------------------------------------
+abstract class F[T] {
+    // (covariant)                              functor: Tree, Option, Try, Future, Collection(List, Set, ...), Parser
+    // 2 laws:
+    //          1. identity law - id: T => T: id(F[T]) == F[T] map id == F[T]
+    //          2. composition law - f: T => R, g: R => P: (F[T] map f) map g == F[T] map (f andThen g) == F[P]
+    def map[R](f: T => R): F[R]  // infix <$> in Haskell
+
+    // contravariant                            functor: Equiv, Ordering,
+    // laws same to the covariant functor's
+    def comap[R](f: R => T): F[R]
+
+    // invariant, exponential                   functor
+    // 2 laws:
+    //          1. identity law - F[T] == xmap(x => x, x => x)
+    //          2. composition law - f1: T => R, f2: R => Q, g1: R => T, g2: Q => R:
+    //             F[T].xmap(f1, g1).xmap(f2, g2) == F[T].xmap(f1 andThen f2, g1 andThen g2)
+    def xmap[R](f: (T => R, R => T)): F[R]
+
+    // applicative                              functor
+    // not value but function is packed inside of context:
+    // (?) - some function, Just(V) - functor with value, Just(?) - functor with some function
+    def apply[R](f: F[T => R]): F[R] // or ap, infix <*> in Haskell
+    // (+3) <$> Just(2) = Just(5)
+    // (+3) <$> (+2) = (+3)(+2)
+    // (+) <$> Just(3) = Just(+3)
+    // Just(+3) <*> Just(2) = Just(5)
+    // (*) <$> Just(3) <*> Just(2) = Just(6)
+    //
+
+    // monad (co-functor/applicative too)       functor: Maybe in Haskell
+    // 3 laws:
+    //          1. left unit law - f: T => F[R]: unit(T) flatMap f == f(T); F[t] flatMap f == f(T)
+    //          2. right unit law - f: T => F[R] = unit: F[T] flatMap unit == F[T]
+    //          3. associativity law - f: T => F[R], g: R => F[Q]:
+    //             (F[T] flatMap f) flatMap g == F[T] flatMap (T => f(T) flatMap g)
+    def unit(x: T): F[T] // or of or return
+    def flatMap[R](f: T => F[R]): F[R] // or chain or bind, infix >>= in Haskell
+    // 3 f (or f(3)) = Just(T)
+    // Just(3) >>= f = Just(T)
+    // IO: getLine >>= readFile >>= putStrLn // cin>> . => F[String] >>= F[File] >>= cout<<(file content)
+
+    // comonad                                  functor
+    def coflatMap[R](f: F[T] => R): F[R] // or extend
+    def extract: T
+
+}
+
+------------------------------------------------------------------------------------------------------------------------
+
+Abstraction
+Composition  |
+Identity     |
+
+
+Category
+
+         .  .   . . .                 ->
+Objects . .  . .  . . .      a <-> a  ->  b <-> b
+         .  .  . . .                  ->
+
+Morphism: a -> b
+            f
+
+Composition:  a -> b -> c  =>  a -> c
+                f    g         g o f  - g after f
+
+Identity:   a <-> a  - id(a),
+            left - id o f = f = f o id - right
+
+               (h o g) o f  h o g
+Associativity: a -> b -> c -> d             h o (g o f) = (h o g) o f
+                 f    g    h
+               g o f        h o (g o f)
+
+
+------------------------------------------------------------------------------------------------------------------------
+                                         STRUCTURAL DATA TYPES, INDUCTION, RECURSION
+------------------------------------------------------------------------------------------------------------------------
+
