@@ -8,25 +8,24 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 @Log
-public class UserXpProcessorImpl implements UserXpProcessor {
+public class UserXpProcessorImpl<C extends Consumer<LevelChangedEvent>> implements UserXpProcessor<C> {
     private static final Integer DEFAULT_LEVEL = 1;
     private static final Integer DEFAULT_XP = 0;
     private final ConfigurationProvider configurationProvider;
     private final Entry<Integer, Integer> minLevelToXp;
     private final Entry<Integer, Integer> maxLevelToXp;
     private final Map<Integer, Integer> userIdToUserXp = new ConcurrentHashMap<>();
-    private final Set<Consumer<LevelChangedEvent>> consumers = new HashSet<>();
+    private final Set<C> consumers = new HashSet<>();
 
     public UserXpProcessorImpl(ConfigurationProvider configurationProvider) {
         this.configurationProvider = configurationProvider;
@@ -59,7 +58,7 @@ public class UserXpProcessorImpl implements UserXpProcessor {
     }
 
     @Override
-    public void subscribe(Consumer<LevelChangedEvent> consumer) {
+    public void subscribe(C consumer) {
         consumers.add(consumer);
     }
 
@@ -69,16 +68,32 @@ public class UserXpProcessorImpl implements UserXpProcessor {
         sendEvents(updateXp(userId, deltaXp));
     }
 
+    @Override
+    public Map<Integer, Integer> getUserIdToUserXp() {
+        return userIdToUserXp;
+    }
+
     private Set<LevelChangedEvent> updateXp(Integer userId, Integer deltaXp) {
-        Integer newXp = getXp(userId) + deltaXp;
         Integer oldLevel = getLevel(userId);
+        Integer newXp = userIdToUserXp.merge(userId, deltaXp, xpMerger());
         Integer newLevel = getConfigLevel(newXp);
-        userIdToUserXp.merge(userId, oldLevel, (id1, id2) -> newXp);
-        return rangeClosed(min(oldLevel, newLevel), max(oldLevel, newLevel))
+        int from = min(oldLevel, newLevel);
+        int to = max(oldLevel, newLevel);
+        Set<LevelChangedEvent> levels = rangeClosed(from, to)
                 .skip(deltaXp < 0 ? 0 : 1)
                 .limit(abs(oldLevel - newLevel))
                 .mapToObj(level -> LevelChangedEvent.builder().userId(userId).level(level).build())
                 .collect(toSet());
+        return levels;
+    }
+
+    private BiFunction<Integer, Integer, Integer> xpMerger() {
+        return (oldXp, diff) -> {
+            int sum = oldXp + diff;
+            if (sum < minLevelToXp.getValue()) return minLevelToXp.getValue();
+            if (maxLevelToXp.getValue() < sum) return maxLevelToXp.getValue();
+            return sum;
+        };
     }
 
     private void sendEvents(Set<LevelChangedEvent> events) {
