@@ -6,8 +6,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeoutException
 import java.util.function.Consumer
 
-import static com.google.common.collect.Sets.difference
-import static java.lang.Math.abs
 import static java.lang.String.format
 import static java.util.Collections.newSetFromMap
 import static java.util.Collections.shuffle
@@ -186,39 +184,6 @@ class UserXpProcessorImplSpec extends Specification {
 
     def "Concurrent test"() {
         given:
-        def threadsAmount = 16
-        def consumersAmount = 5
-        def iterationsAmountPerThread = 1250000
-        def userMaxId = threadsAmount * iterationsAmountPerThread
-        def consumers = (1..consumersAmount).collect { new EventConsumer(it) }
-        consumers.each { processor.subscribe(it) }
-
-        when:
-        def threadTask = (1..threadsAmount).collect() {
-            def task = new Task(iterationsAmountPerThread, userMaxId, processor)
-            def thread = new Thread(task)
-            thread.start()
-            return new Tuple2<Thread, Task>(thread, task)
-        }
-        threadTask.each { it.first.join() }
-        def etalonConsumed = new HashSet<>(consumers.first().eventsConsumed.collect { it.userId })
-        def userInfo = processor.userIdToUserXp.sort()
-        def userIdsSent = new TreeSet<>(threadTask.collect { it.second.processedUserIds }.flatten())
-
-        then:
-        consumers.each {
-            def set = new HashSet<>(it.eventsConsumed.collect { it.userId })
-            def sameSize = etalonConsumed.size() == set.size()
-            if (!sameSize) {
-                println difference(etalonConsumed, set)
-            }
-            assert sameSize
-        }
-        userIdsSent.size() == userInfo.size()
-    }
-
-    def "Concurrent test 2"() {
-        given:
         def usersAmount = 1000
         def xpChangesAmount = 1000
         def maxXpDelta = 10
@@ -244,10 +209,10 @@ class UserXpProcessorImplSpec extends Specification {
 
         when:
         def threadTask = (1..threadsAmount).collect() {
-            def task = new Task2(it, usersPerThreadId.get(it - 1), processor)
+            def task = new Task(it, usersPerThreadId.get(it - 1), processor)
             def thread = new Thread(task)
             thread.start()
-            return new Tuple2<Thread, Task2>(thread, task)
+            return new Tuple2<Thread, Task>(thread, task)
         }
         threadTask.each { it.first.join() }
         threadTask.each {
@@ -289,39 +254,6 @@ class UserXpProcessorImplSpec extends Specification {
     }
 
     static class Task implements Runnable {
-        private def counter = 0
-        private def iterationsAmount
-        private def timeoutSec = 30
-        private def newEventDelayMs = 10
-        private def userIdGenerator = new Random()
-        private def userMaxId
-        private def xpGenerator = new Random()
-        private def minXp = -1000
-        private UserXpProcessor<? extends EventConsumer> xpProcessor
-        private Set<Integer> processedUserIds = new HashSet<>()
-
-        Task(iterationsAmount, userMaxId, xpProcessor) {
-            this.iterationsAmount = iterationsAmount
-            this.userMaxId = userMaxId
-            this.xpProcessor = xpProcessor
-        }
-
-        @Override
-        void run() {
-            def startTime = System.currentTimeSeconds()
-            while (counter++ < iterationsAmount && System.currentTimeSeconds() - startTime < timeoutSec) {
-                def userId = userIdGenerator.nextInt(userMaxId - 1) + 1
-                def xp = xpGenerator.nextInt((2.22 * abs(minXp)) as int)
-                def deltaXp = 0
-                while (deltaXp == 0) deltaXp = xp - abs(minXp)
-                xpProcessor.process(userId, deltaXp)
-                processedUserIds << userId
-                Thread.sleep(newEventDelayMs)
-            }
-        }
-    }
-
-    static class Task2 implements Runnable {
         private def timeoutSec = 15 //13-15s - 128t, 22-25s - 64t
         private def newEventDelayMs = 1
         private def threadId
@@ -330,7 +262,7 @@ class UserXpProcessorImplSpec extends Specification {
         private String timeoutExceptionMessage
         private def spendTimeSec
 
-        Task2(threadId, userInfos, xpProcessor) {
+        Task(threadId, userInfos, xpProcessor) {
             this.threadId = threadId
             this.userInfos = userInfos
             this.xpProcessor = xpProcessor
